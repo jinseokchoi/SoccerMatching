@@ -1,0 +1,260 @@
+package month;
+
+import java.awt.Choice;
+import java.awt.Color;
+import java.awt.Dialog;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GridLayout;
+import java.awt.Label;
+import java.awt.Panel;
+import java.awt.TextArea;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.sql.Connection;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JLabel;
+
+import make.Make;
+import request.request;
+import show.Show;
+import date.date;
+
+class MyWindowAdapter extends WindowAdapter {
+
+
+	public void windowClosing(WindowEvent we) {
+		System.exit(0);
+	}
+}
+
+class MyDataInfo// 데이터를 저장할때 사용할 클래스
+{
+
+	int year;
+	int month;
+	int day;// 날짜
+	String data;// 데이터
+
+	public MyDataInfo(int year, int month, int day, String data) {
+		this.year = year;
+		this.month = month;
+		this.day = day;
+		this.data = data;
+	}
+}
+
+public class Month extends Frame implements ActionListener {
+	private ImageIcon makeimg= new ImageIcon("img/make.jpg");
+	private ImageIcon showimg= new ImageIcon("img/show.jpg");
+	private ImageIcon okimg= new ImageIcon("img/ok.jpg");
+	private ImageIcon MainTitleimg= new ImageIcon("img/MainTitle.jpg");
+	private ImageIcon yearimg= new ImageIcon("img/year.jpg");
+	private ImageIcon monthimg= new ImageIcon("img/month.jpg");
+
+	FlowLayout f = new FlowLayout(FlowLayout.LEFT, 20, 10);
+	FlowLayout C = new FlowLayout(FlowLayout.CENTER, 150, 30);
+	JButton make = new JButton(makeimg);
+	JButton show = new JButton(showimg);
+	GridLayout gl = new GridLayout(1, 7);
+	GridLayout g = new GridLayout(1, 2, 10, 10);
+	Calendar nowcal = Calendar.getInstance();
+	Panel Main = new Panel();
+	Panel selectPanel = new Panel();
+	Panel Title = new Panel();
+	Panel labelPanel = new Panel();
+	Panel dayPanel[] = new Panel[6];
+	Choice cyear = new Choice();
+	Choice cmonth = new Choice();
+	Font large = new Font("돋움", Font.PLAIN, 25);
+	Font large1 = new Font("돋움", Font.CENTER_BASELINE, 45);
+	Font large2 = new Font("돋움", Font.PLAIN, 55);
+	Font large3 = new Font("돋움", Font.ITALIC + Font.BOLD, 100);
+	JLabel lyear = new JLabel(yearimg);
+	JLabel lmonth = new JLabel(monthimg);
+	JButton bt = new JButton(okimg);
+	JLabel MainTitle = new JLabel(MainTitleimg);
+	Label l[] = new Label[7];
+	Label lday[] = new Label[32];
+	Dialog dlg = new Dialog(this);// 대화상자
+	TextArea ta = new TextArea(10, 10);// 대화상자안에 들어갈 입력 상자
+	// String connect = "jdbc:mysql://203.252.22.165:3306/f4", user = "mw9027",
+	// // 학교
+	String connect = "jdbc:mysql://121.168.72.64:3306/f4", user = "mw9027", // 기숙사
+			passwd = "1234";
+	Connection conn;
+	Statement stat;
+	ArrayList<MyDataInfo> list = new ArrayList<MyDataInfo>();// 입력한 데이터 저장하기
+
+	public Month() {
+		this("일정관리");
+	}
+
+	public Month(String s) {
+		super(s);
+		dlg.setSize(400, 400);
+		dlg.setLocationRelativeTo(null);
+		dlg.add(Title);
+		dlg.setLayout(g);
+		dlg.addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e)// 대화상자 종료 버튼을 누루면
+													// 실행되는부분
+			{
+				dlg.setVisible(false);
+				dlg.removeAll();
+			}
+		});
+
+		for (int i = 2014; i < 2016; i++) {
+			String year = Integer.toString(i);
+			cyear.add(year);
+		}
+		for (int i = 1; i < 13; i++) {
+			String month = Integer.toString(i);
+			cmonth.add(month);
+		}
+		bt.addActionListener(this);
+		show.addActionListener(this);
+		make.addActionListener(this);
+		
+		String lstr[] = { "SUN ", " MON", "  TUE", "  WED", "  THU",
+				"  FRI", "  SAT" };
+		for (int i = 0; i < 7; i++) {
+			l[i] = new Label(lstr[i]);
+			l[i].setFont(large1);
+		}
+
+		lday[0] = new Label(" ");
+		for (int i = 1; i < lday.length; i++) {
+			String sday;
+			if (i < 10) {
+				sday = Integer.toString(i);
+			} else {
+				sday = Integer.toString(i);
+			}
+			lday[i] = new Label(sday);
+			lday[i].setFont(large2);
+			lday[i].setSize(5, 5);
+
+			lday[i].addMouseListener(new MouseAdapter()// 숫자를 누루면 실행되는부분
+			{
+				@Override
+				public void mousePressed(MouseEvent e) {
+					new date(cyear.getSelectedItem(),cmonth.getSelectedItem(),((Label)e.getSource()).getText());
+
+				}
+			});
+
+		}
+		int year = nowcal.get(Calendar.YEAR);
+		int month = nowcal.get(Calendar.MONTH);
+		cyear.select(year - 2014);
+		cmonth.select(month);
+
+		selectPanel.setLayout(f);
+		Title.setLayout(C);
+		bt.setBorder(null);
+    	bt.setContentAreaFilled(false);
+		selectPanel.add(cyear);
+		selectPanel.add(lyear);
+		selectPanel.add(cmonth);
+		selectPanel.add(lmonth);
+		selectPanel.add(bt);
+		make.setBorder(null);
+    	make.setContentAreaFilled(false);
+    	
+		show.setBorder(null);
+    	show.setContentAreaFilled(false);
+
+		selectPanel.add(make);
+		selectPanel.add(show);
+		Title.add(MainTitle);
+		cyear.setFont(large);
+		lyear.setFont(large);
+		cmonth.setFont(large);
+		lmonth.setFont(large);
+		make.setFont(large);
+		show.setFont(large);
+		bt.setFont(large);
+		Title.setFont(large3);
+
+		add(Title);
+		add(selectPanel);
+
+		labelPanel.setLayout(new GridLayout());
+		for (int i = 0; i < l.length; i++) {
+			labelPanel.add(l[i]);
+		}
+		add(labelPanel);
+		daytext(year, month);
+
+		setSize(1150, 900);
+		setLocationRelativeTo(null);
+		setVisible(true);
+		setLayout(f);
+
+		addWindowListener(new MyWindowAdapter());
+	
+	}
+
+	public void daytext(int year, int month) {
+		Calendar setcal = Calendar.getInstance();
+		setcal.set(year, month, 1);
+		int firstday = setcal.get(Calendar.DAY_OF_WEEK);
+		int lastday = setcal.getActualMaximum(Calendar.DAY_OF_MONTH);
+		int dayindex = 1;
+		int sunday = 1;
+		dayPanel[0] = new Panel();
+		dayPanel[0].setLayout(new GridLayout(6, 7,75,5));
+
+		for (int i = 1; i < firstday; i++) {
+			dayPanel[0].add(new Label("  "));
+			sunday++;
+		}
+		for (int j = 0; j < lastday; j++) {
+			if (sunday % 7 == 1) {
+				lday[dayindex].setForeground(Color.red);
+			} else if (sunday % 7 == 0) {
+				lday[dayindex].setForeground(Color.blue);
+			} else {
+				lday[dayindex].setForeground(Color.black);
+			}
+			sunday++;
+			dayPanel[0].add(lday[dayindex++]);
+		}
+		while (dayPanel[0].getComponentCount() < 42) {
+			dayPanel[0].add(new Label("  "));
+		}
+		this.add(dayPanel[0]);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == bt) {
+			int year = cyear.getSelectedIndex() + 2013;
+			int month = cmonth.getSelectedIndex();
+			dayPanel[0].setVisible(false);
+			daytext(year, month);
+			setVisible(true);
+		}
+		else if(e.getSource() == make){
+			new Make();
+		}
+		else if(e.getSource() == show)
+			new Show();
+		
+	}
+
+}

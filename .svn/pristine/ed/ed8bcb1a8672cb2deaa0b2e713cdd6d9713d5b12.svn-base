@@ -1,0 +1,131 @@
+	package date;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+
+import main.main;
+import request.request;
+
+public class date extends JFrame {
+	// String connect = "jdbc:mysql://203.252.22.165:3306/f4", user = "mw9027",
+	// // 학교
+
+	static int match_num=0;
+	String connect = "jdbc:mysql://121.168.72.64:3306/f4", user = "mw9027", // 기숙사
+			passwd = "1234";
+	Connection conn;
+	Statement stat;
+	private ImageIcon idimg= new ImageIcon("img/date/id.jpg");
+	private ImageIcon timeimg= new ImageIcon("img/date/time.jpg");
+	private ImageIcon matchingimg= new ImageIcon("img/date/matching.jpg");
+	private ImageIcon applimg= new ImageIcon("img/date/appli.jpg");
+	public date() {
+	}
+
+	public date(String year, String month, String day) {
+		List<JButton> request = new ArrayList<JButton>();
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setSize(320, 400);
+		setLocationRelativeTo(null);
+		setVisible(true);
+		List<Component> jlb = new ArrayList<Component>();
+		JPanel jpl = new JPanel();
+		JPanel jpl2 = new JPanel();
+		JPanel jpt = new JPanel();
+		String date = year + "-" + month + "-" + day;
+		setTitle(date);
+		jpl.setBackground(Color.white);
+		jpl2.setBackground(Color.white);
+		int n = 2;
+		try {
+
+			Class.forName("com.mysql.jdbc.Driver");
+			conn = DriverManager.getConnection(connect, user, passwd);
+			stat = conn.createStatement();
+			ResultSet rs = stat
+					.executeQuery("select * from tb_weather where date ='"
+							+ date + "'");
+
+			if (rs.next()) {
+				jlb.add(new JLabel("최저기온:" + rs.getString("min_temp")
+						+ "℃       최고기온:" + rs.getString("max_temp")
+						+ "℃        날씨:" + rs.getString("weather")));
+			} else
+				jlb.add(new JLabel(
+						"최저기온: Not update  최고기온: Not update  날씨: Not update"));
+			
+			
+			jlb.add(new JLabel("아이디          시간          매칭신청수"));
+			//jpt.add(new JLabel(idimg+ timeimg+ matchingimg +applimg));
+			//jlb.setLayout(new GridLayout(1,4));
+			/*jlb.add(new JLabel(idimg));
+			jlb.add(new JLabel(timeimg));
+			jlb.add(new JLabel(matchingimg));
+			jlb.add(new JLabel(applimg));*/
+			
+			rs = stat.executeQuery("select * from tb_match");
+			while (rs.next()) {
+				if (rs.getString("date").equals(date)
+						&& !rs.getString("id").equals(main.login_session)&&rs.getString("status").equals("0")) {
+					jlb.add(new JLabel("  " + rs.getString("id") + "   "
+							+ rs.getString("s_hour") + ":"
+							+ rs.getString("s_minute") + "~"
+							+ rs.getString("e_hour") + ":"
+							+ rs.getString("e_minute") + "   "
+							+ rs.getString("matching")));
+					request.add(new JButton("경기신청"));
+		
+					request.get(n-2).setName(rs.getString("num"));
+					jlb.add(request.get(n - 2));
+					request.get(n-2).addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							// TODO Auto-generated method stub
+							
+							new request(((JButton)e.getSource()).getName());
+							setVisible(false);
+							
+						}
+					});
+					n++;
+				}
+			}
+				
+			if (n < 10)
+				jpl.setLayout(new GridLayout(10, 2));
+			else
+				jpl.setLayout(new GridLayout(n, 2));
+
+			jpl2.add(jlb.get(0), BorderLayout.NORTH);
+			jpl2.add(jlb.get(1));
+			for (int j = 2; j < (n - 1) * 2; j++)
+				jpl.add(jlb.get(j));
+			jpl2.add(jpl, BorderLayout.SOUTH);
+			add(jpl2);
+
+		} catch (ClassNotFoundException E) {
+			System.out.println("적재오류");
+		} catch (SQLException E) {
+			System.out.println("연결오류");
+		}
+
+	}
+
+}

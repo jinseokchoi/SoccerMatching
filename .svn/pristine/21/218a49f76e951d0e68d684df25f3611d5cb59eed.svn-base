@@ -1,0 +1,110 @@
+package reply;
+
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
+import java.sql.ResultSet;
+
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+import request.request;
+
+public class reply extends JFrame {
+
+	String matching, query;
+	String connect = "jdbc:mysql://121.168.72.64:3306/f4", user = "mw9027", // 기숙사
+			passwd = "1234";
+	Connection conn;
+	Statement stat;
+	JTextField jtf;
+	List<JButton> jbt = new ArrayList<JButton>();
+	private ImageIcon messageimg = new ImageIcon("img/reply/message.jpg");
+	private ImageIcon challengeimg = new ImageIcon("img/reply/challenge.jpg");
+	private ImageIcon successimg = new ImageIcon("img/reply/succ.jpg");
+	public reply(String match) {
+		JPanel jpl = new JPanel();
+		jpl.setBackground(Color.white);
+		matching = match;
+		int n = 0;
+		setSize(250, 400);
+		setTitle("reply");
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		setVisible(true);
+		setLocationRelativeTo(null);
+		System.out.println(match);
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			conn = DriverManager.getConnection(connect, user, passwd);
+			stat = conn.createStatement();
+			ResultSet rs = stat
+					.executeQuery("select * from tb_matching where match_num ='"
+							+ matching + "' and status ='0'");
+			while (rs.next()) {
+				if (true) {
+					jpl.add(new JLabel(rs.getString("id")));
+					jbt.add(new JButton(challengeimg));
+					jbt.get(n).setName(rs.getString("id"));
+					jpl.add(new JLabel(messageimg));
+					jpl.add(new JLabel(rs.getString("message")));
+					jpl.add(jbt.get(n));
+					jbt.get(n).addActionListener(new ActionListener() {
+						@Override
+						public void actionPerformed(ActionEvent e) {
+							// TODO Auto-generated method stub
+							
+							try {
+								Class.forName("com.mysql.jdbc.Driver");
+								conn = DriverManager.getConnection(connect,
+										user, passwd);
+								stat = conn.createStatement();
+								String query = "update tb_matching set status ='1' where match_num ='"+matching+"'";
+								stat.executeUpdate(query);
+								query = "update tb_match set status ='1' where num ='"+matching+"'";
+								stat.executeUpdate(query);
+								query = "select * from tb_user where id ='"+e.getClass().getName()+"'";
+								//ResultSet rst = stat.executeQuery(query);
+							    //	rst.next();
+								JFrame frame = new JFrame();
+								frame.add(new JLabel(successimg));
+								//frame.add(new JLabel("상대방 연락처:"+rst.getString("phone")));
+								frame.setVisible(true);
+								frame.setSize(400, 100);
+								frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+								frame.setLocationRelativeTo(null);
+								frame.setTitle("Success");
+								setVisible(false);
+							} catch (ClassNotFoundException E) {
+								System.out.println("적재오류");
+							} catch (SQLException E) {
+								System.out.println("연결오류");
+							}
+						}
+					});
+					n++;
+				}
+			}
+			if (n < 10)
+				jpl.setLayout(new GridLayout(10, 2, 10, 10));
+			else
+				jpl.setLayout(new GridLayout(n, 2, 10, 10));
+			add(jpl);
+		} catch (ClassNotFoundException E) {
+			System.out.println("적재오류");
+		} catch (SQLException E) {
+			System.out.println("연결오류");
+		}
+
+	}
+}
